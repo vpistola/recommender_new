@@ -39,6 +39,24 @@ def getUserHistoryList():
     conn.close()
     return historyRatings
 
+def getUserHistoryDict():
+    historyRatings = {}
+    conn = connection()
+    cursor = conn.cursor()
+    sqlStmt = '''
+    SELECT object_id, user_id,
+    (CASE WHEN count(object_id)>5 THEN 1 ELSE 0 END) as historyRating
+    FROM userHistory 
+    WHERE object_table='plays'
+    GROUP BY object_id, user_id
+    '''
+    cursor.execute(sqlStmt)
+    for row in cursor.fetchall():
+        if row[1] not in historyRatings:
+            historyRatings[row[1]] = {} 
+        historyRatings[row[1]].update({row[0]: row[2]})
+    conn.close()
+    return historyRatings
 
 def getPlays():
     plays = []

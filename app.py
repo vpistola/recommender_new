@@ -6,6 +6,7 @@ from surprise import Reader
 from load_data import data
 from recommender import algo
 from surprise import SVD
+from pearson import getRecommendations
 from db import *
 
 app = Flask(__name__)
@@ -31,9 +32,6 @@ def knn(user, item):
 @app.route("/knn/<user>")
 def knn2(user):
     recommendations = [algo.predict(user, pID) for pID in plays if algo.predict(user, pID).est>THRESHOLD]
-    # for pID in plays:
-    #     prediction = algo.predict(user, pID)
-    #     recommendations.append(prediction.est)
     return jsonify(recommendations)
 
 @app.route("/svd")
@@ -49,6 +47,15 @@ def svd(user):
     modelTrain(svd)
     recommendations = [svd.predict(user, pID) for pID in plays if svd.predict(user, pID).est>THRESHOLD]
     return jsonify(recommendations)
+
+@app.route("/recommendations/<user>")
+def recommendations(user):
+    #PREFS = getUserHistoryDict()  #for real data from DB
+    PREFS = {2: {5: 1, 6: 1, 7: 0, 8: 1, 9: 0, 10: 1, 120: 1, 490: 0, 576: 0, 605: 0, 610: 0, 618: 0, 671: 1, 718: 0, 735: 1, 906: 0, 2284: 1, 684: 1}, 8: {5: 1, 6: 0, 7: 0, 8: 1, 9: 0, 10: 1, 120: 0, 490: 0, 576: 0, 605: 0, 610: 0, 618: 0, 671: 1, 718: 0, 735: 1, 906: 0, 2153: 0, 2306: 0}, 10: {47: 0, 48: 0, 67: 0, 219: 0, 2243: 0, 2306: 0, 2337: 0}, 15: {482: 1, 538: 0, 824: 1}}
+    recommendations = getRecommendations(PREFS, int(user))
+    # CREATE LIST WITH PLAY IDs THAT SIMILAR USERS RECOMMEND  
+    playIDs = [v for k,v in recommendations if k==1]  
+    return jsonify(playIDs)
 
 @app.route("/history/<int:user_id>")
 def history(user_id):
